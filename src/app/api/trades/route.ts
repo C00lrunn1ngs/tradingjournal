@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 import { calcTrade } from '@/lib/calculations';
 import type { Trade } from '@/lib/types';
@@ -22,33 +22,25 @@ export async function GET(req: NextRequest) {
   const offset = (page - 1) * limit;
 
   let where = 'WHERE user_id = @userId';
-  const params: Record<string, { type: sql.ISqlType; value: unknown }> = {
-    userId: { type: sql.Int, value: userId },
-  };
+  const params: Record<string, unknown> = { userId };
 
   if (type === 'Long' || type === 'Short') {
     where += ' AND trade_type = @type';
-    params.type = { type: sql.NVarChar(5), value: type };
+    params.type = type;
   }
   if (symbol) {
     where += ' AND symbol = @symbol';
-    params.symbol = { type: sql.NVarChar(20), value: symbol };
+    params.symbol = symbol;
   }
 
-  const countResult = await db(
-    `SELECT COUNT(*) as total FROM trades ${where}`,
-    params
-  );
-  const total = countResult.recordset[0].total as number;
+  const countResult = await db(`SELECT COUNT(*) as total FROM trades ${where}`, params);
+  const total = (countResult.recordset[0] as { total: number }).total;
 
   const tradesResult = await db(
     `SELECT * FROM trades ${where}
      ORDER BY trade_date DESC, created_at DESC
      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
-    { ...params,
-      offset: { type: sql.Int, value: offset },
-      limit:  { type: sql.Int, value: limit  },
-    }
+    { ...params, offset, limit }
   );
 
   return NextResponse.json({
@@ -72,8 +64,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Verplichte velden ontbreken' }, { status: 400 });
   }
 
-  let calc = { totalPl: 0, rMultiple: null as number | null, percentGain: null as number | null,
-               amountInvested: body.entry_price * body.shares, amountSold: 0 };
+  let calc = {
+    totalPl: 0,
+    rMultiple: null as number | null,
+    percentGain: null as number | null,
+    amountInvested: body.entry_price * body.shares,
+    amountSold: 0,
+  };
 
   if (body.exit_price) {
     calc = calcTrade(
@@ -98,25 +95,25 @@ export async function POST(req: NextRequest) {
       @amount_invested, @amount_sold, @total_pl, @percent_gain, @r_multiple,
       @commission, @notes, @screenshot_url, @issue)`,
     {
-      userId:          { type: sql.Int,          value: userId },
-      trade_date:      { type: sql.Date,          value: body.trade_date },
-      symbol:          { type: sql.NVarChar(20),  value: body.symbol },
-      trade_type:      { type: sql.NVarChar(5),   value: body.trade_type },
-      time_of_trade:   { type: sql.NVarChar(20),  value: body.time_of_trade  ?? null },
-      strategy:        { type: sql.NVarChar(100), value: body.strategy       ?? null },
-      entry_price:     { type: sql.Decimal(12,4), value: body.entry_price },
-      stop_loss:       { type: sql.Decimal(12,4), value: body.stop_loss      ?? null },
-      shares:          { type: sql.Int,           value: body.shares },
-      exit_price:      { type: sql.Decimal(12,4), value: body.exit_price     ?? null },
-      amount_invested: { type: sql.Decimal(12,2), value: calc.amountInvested },
-      amount_sold:     { type: sql.Decimal(12,2), value: calc.amountSold },
-      total_pl:        { type: sql.Decimal(12,2), value: body.exit_price ? calc.totalPl : null },
-      percent_gain:    { type: sql.Decimal(10,6), value: calc.percentGain    ?? null },
-      r_multiple:      { type: sql.Decimal(8,4),  value: calc.rMultiple      ?? null },
-      commission:      { type: sql.Decimal(8,2),  value: body.commission     ?? null },
-      notes:           { type: sql.NVarChar(sql.MAX), value: body.notes      ?? null },
-      screenshot_url:  { type: sql.NVarChar(500), value: body.screenshot_url ?? null },
-      issue:           { type: sql.NVarChar(sql.MAX), value: body.issue      ?? null },
+      userId,
+      trade_date:      body.trade_date,
+      symbol:          body.symbol,
+      trade_type:      body.trade_type,
+      time_of_trade:   body.time_of_trade   ?? null,
+      strategy:        body.strategy        ?? null,
+      entry_price:     body.entry_price,
+      stop_loss:       body.stop_loss       ?? null,
+      shares:          body.shares,
+      exit_price:      body.exit_price      ?? null,
+      amount_invested: calc.amountInvested,
+      amount_sold:     calc.amountSold,
+      total_pl:        body.exit_price ? calc.totalPl : null,
+      percent_gain:    calc.percentGain     ?? null,
+      r_multiple:      calc.rMultiple       ?? null,
+      commission:      body.commission      ?? null,
+      notes:           body.notes           ?? null,
+      screenshot_url:  body.screenshot_url  ?? null,
+      issue:           body.issue           ?? null,
     }
   );
 

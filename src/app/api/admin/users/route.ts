@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 
 function getAdmin(req: NextRequest) {
@@ -33,12 +33,12 @@ export async function POST(req: NextRequest) {
     `INSERT INTO users (username, email, password_hash, role, starting_balance, max_drawdown)
      VALUES (@username, @email, @hash, @role, @starting_balance, @max_drawdown)`,
     {
-      username:         { type: sql.NVarChar(50),  value: body.username },
-      email:            { type: sql.NVarChar(100), value: body.email },
-      hash:             { type: sql.NVarChar(255), value: hash },
-      role:             { type: sql.NVarChar(10),  value: body.role === 'admin' ? 'admin' : 'user' },
-      starting_balance: { type: sql.Decimal(12,2), value: body.starting_balance ?? 45000 },
-      max_drawdown:     { type: sql.Decimal(12,2), value: body.max_drawdown     ?? 2000  },
+      username:         body.username,
+      email:            body.email,
+      hash,
+      role:             body.role === 'admin' ? 'admin' : 'user',
+      starting_balance: body.starting_balance ?? 45000,
+      max_drawdown:     body.max_drawdown     ?? 2000,
     }
   );
 

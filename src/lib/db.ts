@@ -12,7 +12,6 @@ const config: sql.config = {
   },
 };
 
-// Global singleton to survive Next.js hot reload
 declare global {
   // eslint-disable-next-line no-var
   var _sqlPool: sql.ConnectionPool | undefined;
@@ -25,15 +24,17 @@ async function getPool(): Promise<sql.ConnectionPool> {
   return global._sqlPool;
 }
 
+// Pass params as plain values — mssql v12 type-matching is broken when using sql.Type()
+// wrappers from the public API (different references than internal TYPES). Auto-detection works.
 export async function db(
   queryStr: string,
-  params?: Record<string, { type: sql.ISqlType; value: unknown }>
+  params?: Record<string, unknown>
 ): Promise<sql.IResult<unknown>> {
   const pool = await getPool();
   const req = pool.request();
   if (params) {
-    for (const [key, { type, value }] of Object.entries(params)) {
-      req.input(key, type, value);
+    for (const [key, value] of Object.entries(params)) {
+      req.input(key, value);
     }
   }
   return req.query(queryStr);

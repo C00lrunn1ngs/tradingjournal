@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import type { User } from '@/lib/types';
@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   const result = await db(
     'SELECT id, username, role, starting_balance, max_drawdown FROM users WHERE id = @id',
-    { id: { type: sql.Int, value: payload.userId } }
+    { id: payload.userId }
   );
   const user = result.recordset[0] as Pick<User, 'id' | 'username' | 'role' | 'starting_balance' | 'max_drawdown'>;
   if (!user) redirect('/login');

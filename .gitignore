@@ -1,0 +1,31 @@
+# Dependencies (install on server with npm install --production)
+node_modules/
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Next.js build cache (large, regenerated automatically)
+.next/cache/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+
+# Local data files
+*.xlsx
+
+# Tooling internals
+.superpowers/
+.claude/
+
+# TypeScript incremental info
+tsconfig.tsbuildinfo

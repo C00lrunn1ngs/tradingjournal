@@ -1,27 +1,19 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
+import { getDashboardStats } from '@/lib/stats';
 import StatCard from '@/components/StatCard';
 import EquityCurve from '@/components/EquityCurve';
 import DrawdownMeter from '@/components/DrawdownMeter';
 import MonthlyPnlChart from '@/components/MonthlyPnlChart';
-import type { DashboardStats, Trade } from '@/lib/types';
-
-async function getStats(cookieHeader: string): Promise<DashboardStats | null> {
-  const res = await fetch(`http://localhost:${process.env.PORT ?? 3000}/api/dashboard/stats`, {
-    headers: { Cookie: cookieHeader },
-    cache: 'no-store',
-  });
-  if (!res.ok) return null;
-  return res.json() as Promise<DashboardStats>;
-}
+import type { Trade } from '@/lib/types';
 
 async function getRecentTrades(userId: number): Promise<Trade[]> {
   const r = await db(
     `SELECT TOP 5 * FROM trades WHERE user_id = @userId AND total_pl IS NOT NULL
      ORDER BY trade_date DESC, created_at DESC`,
-    { userId: { type: sql.Int, value: userId } }
+    { userId }
   );
   return r.recordset as Trade[];
 }
@@ -36,9 +28,8 @@ export default async function DashboardPage() {
   const payload = token ? verifyToken(token) : null;
   if (!payload) redirect('/login');
 
-  const cookieHeader = cookieStore.toString();
   const [stats, recent] = await Promise.all([
-    getStats(cookieHeader),
+    getDashboardStats(payload.userId),
     getRecentTrades(payload.userId),
   ]);
 

@@ -1,45 +1,41 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken, COOKIE_NAME } from './lib/auth';
+
+// Middleware runs in the Edge runtime where jsonwebtoken (Node.js crypto) is unavailable.
+// We only check cookie presence here. Full JWT verification happens in every layout and
+// API route (Node.js runtime), so an invalid/expired token is still rejected there.
+
+// Duplicated from lib/auth.ts — cannot import that module in Edge (it bundles jsonwebtoken)
+const COOKIE_NAME = 'tj_token';
 
 const PUBLIC_PAGE_PATHS = ['/login'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow auth API routes without a token
+  // Auth API routes always pass through
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get(COOKIE_NAME)?.value ?? null;
-  const user = token ? verifyToken(token) : null;
+  const hasToken = !!request.cookies.get(COOKIE_NAME)?.value;
 
-  // --- API routes: return 401 JSON ---
+  // --- API routes: return 401 JSON if no cookie ---
   if (pathname.startsWith('/api/')) {
-    if (!user) {
+    if (!hasToken) {
       return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 });
     }
-    if (pathname.startsWith('/api/admin') && user.role !== 'admin') {
-      return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
-    }
     return NextResponse.next();
   }
 
-  // --- Page routes: redirect to /login ---
+  // --- Page routes ---
   if (PUBLIC_PAGE_PATHS.some(p => pathname.startsWith(p))) {
-    // Already on a public page: redirect to dashboard if already logged in
-    if (user) return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (hasToken) return NextResponse.redirect(new URL('/dashboard', request.url));
     return NextResponse.next();
   }
 
-  if (!user) {
+  if (!hasToken) {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Admin-only pages
-  if (pathname.startsWith('/admin') && user.role !== 'admin') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();

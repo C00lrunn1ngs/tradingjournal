@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import TradeForm from '@/components/TradeForm';
 import type { Trade } from '@/lib/types';
 
@@ -21,10 +21,7 @@ export default async function EditTradePage({
 
   const result = await db(
     'SELECT * FROM trades WHERE id = @id AND user_id = @userId',
-    {
-      id:     { type: sql.Int, value: tradeId },
-      userId: { type: sql.Int, value: payload.userId },
-    }
+    { id: tradeId, userId: payload.userId }
   );
   const trade = result.recordset[0] as Trade | undefined;
   if (!trade) notFound();

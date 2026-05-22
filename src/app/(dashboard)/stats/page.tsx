@@ -1,17 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
-import { db, sql } from '@/lib/db';
-import type { DashboardStats } from '@/lib/types';
-
-async function getStats(cookieHeader: string): Promise<DashboardStats | null> {
-  const res = await fetch(
-    `http://localhost:${process.env.PORT ?? 3000}/api/dashboard/stats`,
-    { headers: { Cookie: cookieHeader }, cache: 'no-store' }
-  );
-  if (!res.ok) return null;
-  return res.json();
-}
+import { db } from '@/lib/db';
+import { getDashboardStats } from '@/lib/stats';
 
 async function getSymbolBreakdown(userId: number) {
   const r = await db(
@@ -24,7 +15,7 @@ async function getSymbolBreakdown(userId: number) {
      WHERE user_id = @userId AND total_pl IS NOT NULL
      GROUP BY symbol
      ORDER BY total_pl DESC`,
-    { userId: { type: sql.Int, value: userId } }
+    { userId }
   );
   return r.recordset as { symbol: string; trades: number; wins: number; total_pl: number; avg_r: number }[];
 }
@@ -39,9 +30,8 @@ export default async function StatsPage() {
   const payload = token ? verifyToken(token) : null;
   if (!payload) redirect('/login');
 
-  const cookieHeader = cookieStore.toString();
   const [stats, symbols] = await Promise.all([
-    getStats(cookieHeader),
+    getDashboardStats(payload.userId),
     getSymbolBreakdown(payload.userId),
   ]);
 

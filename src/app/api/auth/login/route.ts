@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { signToken, tokenCookieOptions } from '@/lib/auth';
 import type { User } from '@/lib/types';
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const result = await db(
     'SELECT id, username, email, password_hash, role FROM users WHERE username = @u',
-    { u: { type: sql.NVarChar(50), value: username } }
+    { u: username }
   );
 
   const user = result.recordset[0] as User | undefined;

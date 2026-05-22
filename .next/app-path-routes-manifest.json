@@ -1,0 +1,19 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/admin/users/[id]/route": "/api/admin/users/[id]",
+  "/api/admin/users/route": "/api/admin/users",
+  "/api/auth/logout/route": "/api/auth/logout",
+  "/api/trades/[id]/route": "/api/trades/[id]",
+  "/api/auth/me/route": "/api/auth/me",
+  "/api/dashboard/stats/route": "/api/dashboard/stats",
+  "/api/trades/route": "/api/trades",
+  "/page": "/",
+  "/(dashboard)/stats/page": "/stats",
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/admin/users/page": "/admin/users",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/(dashboard)/trades/[id]/edit/page": "/trades/[id]/edit",
+  "/(dashboard)/trades/page": "/trades",
+  "/(dashboard)/trades/new/page": "/trades/new"
+}

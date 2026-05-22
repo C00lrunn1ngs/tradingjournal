@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, sql } from '@/lib/db';
+import { db } from '@/lib/db';
 import { verifyToken, COOKIE_NAME } from '@/lib/auth';
 import type { User } from '@/lib/types';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const result = await db(
     'SELECT id, username, email, role, starting_balance, max_drawdown FROM users WHERE id = @id',
-    { id: { type: sql.Int, value: payload.userId } }
+    { id: payload.userId }
   );
 
   const user = result.recordset[0] as Partial<User> | undefined;
