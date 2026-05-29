@@ -1,9 +1,13 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSuccess] = useState(
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('reset') === '1'
+  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,7 +45,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-[10px] font-semibold text-tj-muted2 uppercase tracking-wide mb-1.5">
-              Gebruikersnaam
+              Gebruikersnaam of e-mailadres
             </label>
             <input
               name="username"
@@ -49,7 +53,7 @@ export default function LoginPage() {
               required
               autoComplete="username"
               className="w-full bg-tj-bg border border-tj-border rounded-lg px-3 py-2.5 text-tj-text text-sm placeholder-tj-muted focus:outline-none focus:border-tj-teal focus:ring-1 focus:ring-tj-teal"
-              placeholder="jouw gebruikersnaam"
+              placeholder="gebruikersnaam of e-mail"
             />
           </div>
 
@@ -67,6 +71,12 @@ export default function LoginPage() {
             />
           </div>
 
+          {resetSuccess && (
+            <p className="text-sm text-tj-teal bg-[#061a12] border border-[#0d3020] rounded-lg px-3 py-2">
+              Wachtwoord succesvol gewijzigd. Je kunt nu inloggen.
+            </p>
+          )}
+
           {error && (
             <p className="text-sm text-tj-red bg-[#1a0808] border border-[#2a1010] rounded-lg px-3 py-2">
               {error}
@@ -81,6 +91,10 @@ export default function LoginPage() {
             {loading ? 'Bezig...' : 'Inloggen'}
           </button>
         </form>
+
+        <Link href="/forgot-password" className="block mt-4 text-center text-xs text-tj-muted hover:text-tj-text">
+          Wachtwoord vergeten?
+        </Link>
       </div>
     </div>
   );

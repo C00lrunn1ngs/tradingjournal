@@ -24,7 +24,11 @@ function catmullToBezier(pts: [number, number][], t = 0.38): string {
   return d.join(' ');
 }
 
-const W = 760, H = 130, PAD = { t: 18, r: 48, b: 28, l: 10 };
+const W = 760, H = 160, PAD = { t: 16, r: 52, b: 28, l: 74 };
+
+function fmtEur(v: number) {
+  return '€' + v.toLocaleString('nl-NL', { maximumFractionDigits: 0 });
+}
 
 export default function EquityCurve({ data, startingBalance, maxDrawdown }: Props) {
   if (data.length < 2) {
@@ -33,25 +37,33 @@ export default function EquityCurve({ data, startingBalance, maxDrawdown }: Prop
 
   const cW = W - PAD.l - PAD.r;
   const cH = H - PAD.t - PAD.b;
+
   const equities = data.map(d => d.equity);
-  const minE = Math.min(...equities, startingBalance - maxDrawdown * 0.2);
-  const maxE = Math.max(...equities, startingBalance + 100);
+  const minE = Math.min(...equities);
+  const maxE = Math.max(...equities);
   const range = maxE - minE || 1;
 
   const toX = (i: number) => PAD.l + (i / Math.max(data.length - 1, 1)) * cW;
   const toY = (e: number) => PAD.t + cH - ((e - minE) / range) * cH;
 
-  const baseY  = toY(startingBalance);
-  const maxDdY = toY(startingBalance - maxDrawdown);
+  const topY    = PAD.t;
+  const bottomY = PAD.t + cH;
+  const baseY   = toY(startingBalance);
+  const clampedBaseY = Math.max(topY, Math.min(bottomY, baseY));
+
   const pts: [number, number][] = data.map((d, i) => [toX(i), toY(d.equity)]);
   const linePath   = catmullToBezier(pts);
-  const closedPath = `${linePath} L ${pts[pts.length-1][0]},${baseY} L ${pts[0][0]},${baseY} Z`;
-  const endEquity  = data[data.length - 1].equity;
+  const closedPath = `${linePath} L ${pts[pts.length - 1][0]},${clampedBaseY} L ${pts[0][0]},${clampedBaseY} Z`;
 
-  const fmt = (s: string) => {
-    const d = new Date(s);
-    return d.toLocaleDateString('nl-NL', { month: 'short', year: '2-digit' });
-  };
+  const fmt = (s: string) => new Date(s).toLocaleDateString('nl-NL', { month: 'short', year: '2-digit' });
+
+  // Label vertical positions — keep them from overlapping when close together
+  const minLabelY = Math.min(bottomY + 4, H - 4);
+  const maxLabelY = Math.max(topY + 10, 10);
+  const baseLabelY = clampedBaseY - 4;
+
+  // suppress baseline label if too close to min/max labels
+  const showBaseLabel = Math.abs(clampedBaseY - topY) > 18 && Math.abs(clampedBaseY - bottomY) > 18;
 
   return (
     <div>
@@ -62,35 +74,48 @@ export default function EquityCurve({ data, startingBalance, maxDrawdown }: Prop
         style={{ display: 'block', overflow: 'visible' }}
       >
         <defs>
-          <clipPath id="ec-above"><rect x="0" y="0" width={W} height={baseY} /></clipPath>
-          <clipPath id="ec-below"><rect x="0" y={baseY} width={W} height={H} /></clipPath>
+          <clipPath id="ec-above"><rect x={PAD.l} y={0} width={cW} height={clampedBaseY} /></clipPath>
+          <clipPath id="ec-below"><rect x={PAD.l} y={clampedBaseY} width={cW} height={H} /></clipPath>
           <linearGradient id="ec-green" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00d4aa" stopOpacity={0.4} />
+            <stop offset="0%"   stopColor="#00d4aa" stopOpacity={0.35} />
             <stop offset="100%" stopColor="#00d4aa" stopOpacity={0.03} />
           </linearGradient>
           <linearGradient id="ec-red" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ff6b6b" stopOpacity={0.03} />
-            <stop offset="100%" stopColor="#ff6b6b" stopOpacity={0.4} />
+            <stop offset="0%"   stopColor="#ff6b6b" stopOpacity={0.03} />
+            <stop offset="100%" stopColor="#ff6b6b" stopOpacity={0.35} />
           </linearGradient>
         </defs>
 
-        {/* Baseline */}
-        <line x1={PAD.l} y1={baseY} x2={W - PAD.r} y2={baseY}
-              stroke="#2a4a5a" strokeWidth={1} strokeDasharray="5,4" />
-        <text x={PAD.l + 4} y={baseY - 4} fill="#3a6a7a" fontSize={9}
-              fontFamily="'JetBrains Mono', monospace">
-          €{startingBalance.toLocaleString('nl-NL')}
+        {/* Top boundary — green dashed line (highest point) */}
+        <line x1={PAD.l} y1={topY} x2={W - PAD.r} y2={topY}
+              stroke="#4ade80" strokeWidth={1} strokeDasharray="5,4" opacity={0.6} />
+        <text x={PAD.l - 4} y={maxLabelY}
+              fill="#4ade80" fontSize={9.5} fontFamily="'JetBrains Mono', monospace"
+              textAnchor="end">
+          {fmtEur(maxE)}
         </text>
 
-        {/* Max drawdown line */}
-        {maxDdY < H && (
+        {/* Bottom boundary — red dashed line (lowest point) */}
+        <line x1={PAD.l} y1={bottomY} x2={W - PAD.r} y2={bottomY}
+              stroke="#ff6b6b" strokeWidth={1} strokeDasharray="5,4" opacity={0.6} />
+        <text x={PAD.l - 4} y={minLabelY}
+              fill="#ff4444" fontSize={9.5} fontFamily="'JetBrains Mono', monospace"
+              textAnchor="end">
+          {fmtEur(minE)}
+        </text>
+
+        {/* Baseline (starting balance) — dashed, only when visible */}
+        {clampedBaseY > topY && clampedBaseY < bottomY && (
           <>
-            <line x1={PAD.l} y1={maxDdY} x2={W - PAD.r} y2={maxDdY}
-                  stroke="#8b2020" strokeWidth={1} strokeDasharray="4,4" opacity={0.6} />
-            <text x={PAD.l + 4} y={maxDdY + 12} fill="#8b3030" fontSize={9}
-                  fontFamily="'JetBrains Mono', monospace">
-              Max DD −€{maxDrawdown.toLocaleString('nl-NL')}
-            </text>
+            <line x1={PAD.l} y1={clampedBaseY} x2={W - PAD.r} y2={clampedBaseY}
+                  stroke="#2a4a5a" strokeWidth={1} strokeDasharray="5,4" />
+            {showBaseLabel && (
+              <text x={PAD.l - 4} y={baseLabelY}
+                    fill="#3a6a7a" fontSize={9} fontFamily="'JetBrains Mono', monospace"
+                    textAnchor="end">
+                {fmtEur(startingBalance)}
+              </text>
+            )}
           </>
         )}
 
@@ -98,18 +123,19 @@ export default function EquityCurve({ data, startingBalance, maxDrawdown }: Prop
         <path d={closedPath} fill="url(#ec-green)" clipPath="url(#ec-above)" />
         <path d={closedPath} fill="url(#ec-red)"   clipPath="url(#ec-below)" />
 
-        {/* Line */}
+        {/* Curve */}
         <path d={linePath} fill="none" stroke="#00d4aa" strokeWidth={2}
               strokeLinecap="round" strokeLinejoin="round" />
 
         {/* End label */}
-        <text x={pts[pts.length-1][0] + 4} y={pts[pts.length-1][1] + 4}
+        <text x={pts[pts.length - 1][0] + 5} y={pts[pts.length - 1][1] + 4}
               fill="#e2f0f7" fontSize={9} fontFamily="'JetBrains Mono', monospace">
-          €{endEquity.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}
+          {fmtEur(data[data.length - 1].equity)}
         </text>
       </svg>
 
-      <div className="flex justify-between mt-1 text-[10px] font-mono text-tj-muted2 px-0.5">
+      <div className="flex justify-between mt-1 text-[10px] font-mono text-tj-muted2"
+           style={{ paddingLeft: PAD.l, paddingRight: PAD.r }}>
         <span>{fmt(data[0].date)}</span>
         {data.length > 2 && <span>{fmt(data[Math.floor(data.length / 2)].date)}</span>}
         <span>{fmt(data[data.length - 1].date)}</span>

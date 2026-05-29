@@ -49,7 +49,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard label="Huidig Saldo"   value={fmtEur(stats.currentEquity)} sub={`Start: ${fmtEur(stats.startingBalance)}`} color="white" />
         <StatCard label="Totaal P&L"      value={fmtEur(stats.totalPl)}       sub={`${stats.tradeCount} trades`}              color={stats.totalPl >= 0 ? 'green' : 'red'} />
         <StatCard label="Win Rate"        value={`${(stats.winRate * 100).toFixed(1)}%`} sub={`${stats.winCount}W — ${stats.lossCount}L`} color="green" />
@@ -58,9 +58,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-3 gap-3.5">
-        {/* Equity curve — 2/3 width */}
-        <div className="col-span-2 bg-tj-card border border-tj-border rounded-xl p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Equity curve */}
+        <div className="lg:col-span-2 bg-tj-card border border-tj-border rounded-xl p-4">
           <p className="text-[11px] font-semibold text-tj-muted2 uppercase tracking-[.8px] mb-3">
             <span className="text-tj-teal">▸</span> Equity Curve
           </p>
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Monthly P&L */}
         <div className="bg-tj-card border border-tj-border rounded-xl p-4">
           <p className="text-[11px] font-semibold text-tj-muted2 uppercase tracking-[.8px] mb-3">
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent trades */}
-        <div className="col-span-2 bg-tj-card border border-tj-border rounded-xl p-4">
+        <div className="lg:col-span-2 bg-tj-card border border-tj-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-semibold text-tj-muted2 uppercase tracking-[.8px]">
               <span className="text-tj-teal">▸</span> Recente Trades
@@ -101,12 +101,16 @@ export default async function DashboardPage() {
               + Nieuwe trade
             </a>
           </div>
-          <table className="w-full text-[12px]">
+          <div className="overflow-x-auto -mx-1">
+          <table className="w-full text-[12px] min-w-[340px]">
             <thead>
               <tr className="border-b border-tj-border">
-                {['Datum','Symbool','Type','Entry','P&L','R'].map(h => (
-                  <th key={h} className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px]">{h}</th>
-                ))}
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px]">Datum</th>
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px]">Symbool</th>
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px]">Type</th>
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px] hidden sm:table-cell">Entry</th>
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px]">P&L</th>
+                <th className="text-left px-2.5 py-1.5 text-[10px] font-semibold text-tj-muted2 uppercase tracking-[.6px] hidden sm:table-cell">R</th>
               </tr>
             </thead>
             <tbody>
@@ -126,19 +130,20 @@ export default async function DashboardPage() {
                         : 'bg-[#2a1010] text-[#ff9a7a] border-[#3a2010]'
                     }`}>{t.trade_type}</span>
                   </td>
-                  <td className="px-2.5 py-2 font-mono text-tj-text2">
+                  <td className="px-2.5 py-2 font-mono text-tj-text2 hidden sm:table-cell">
                     {t.entry_price?.toLocaleString('nl-NL', { maximumFractionDigits: 2 })}
                   </td>
                   <td className={`px-2.5 py-2 font-mono font-bold ${(t.total_pl ?? 0) >= 0 ? 'text-tj-teal' : 'text-tj-red'}`}>
                     {(t.total_pl ?? 0) >= 0 ? '+' : '−'}€{Math.abs(t.total_pl ?? 0).toFixed(2)}
                   </td>
-                  <td className={`px-2.5 py-2 font-mono font-bold ${(t.r_multiple ?? 0) >= 0 ? 'text-tj-teal' : 'text-tj-red'}`}>
+                  <td className={`px-2.5 py-2 font-mono font-bold hidden sm:table-cell ${(t.r_multiple ?? 0) >= 0 ? 'text-tj-teal' : 'text-tj-red'}`}>
                     {(t.r_multiple ?? 0) >= 0 ? '+' : '−'}{Math.abs(t.r_multiple ?? 0).toFixed(2)}R
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

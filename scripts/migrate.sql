@@ -50,4 +50,10 @@ CREATE TABLE sessions (
   created_at  DATETIME2     NOT NULL DEFAULT GETDATE()
 );
 
+-- Password reset columns (idempotent)
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'reset_token_hash')
+  ALTER TABLE users ADD reset_token_hash NVARCHAR(64) NULL;
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'reset_token_expires')
+  ALTER TABLE users ADD reset_token_expires DATETIME2 NULL;
+
 PRINT 'Migration complete.';

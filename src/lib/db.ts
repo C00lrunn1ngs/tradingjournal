@@ -2,13 +2,14 @@ import sql from 'mssql';
 
 const config: sql.config = {
   server: process.env.DB_SERVER!,
-  port: parseInt(process.env.DB_PORT ?? '1433'),
+  ...(process.env.DB_INSTANCE ? {} : { port: parseInt(process.env.DB_PORT ?? '1433') }),
   database: process.env.DB_DATABASE!,
   user: process.env.DB_USER!,
   password: process.env.DB_PASSWORD!,
   options: {
     trustServerCertificate: process.env.DB_TRUST_CERT === 'true',
     enableArithAbort: true,
+    ...(process.env.DB_INSTANCE ? { instanceName: process.env.DB_INSTANCE } : {}),
   },
 };
 

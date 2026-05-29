@@ -36,6 +36,14 @@
       "namedRegex": "^/api/trades/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/reset-password/[token]",
+      "regex": "^/reset\\-password/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtoken": "nxtPtoken"
+      },
+      "namedRegex": "^/reset\\-password/(?<nxtPtoken>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/trades/[id]/edit",
       "regex": "^/trades/([^/]+?)/edit(?:/)?$",
       "routeKeys": {
@@ -70,10 +78,22 @@
       "namedRegex": "^/dashboard(?:/)?$"
     },
     {
+      "page": "/forgot-password",
+      "regex": "^/forgot\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/forgot\\-password(?:/)?$"
+    },
+    {
       "page": "/login",
       "regex": "^/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
     },
     {
       "page": "/stats",

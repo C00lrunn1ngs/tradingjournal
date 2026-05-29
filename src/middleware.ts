@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server';
 // Duplicated from lib/auth.ts — cannot import that module in Edge (it bundles jsonwebtoken)
 const COOKIE_NAME = 'tj_token';
 
-const PUBLIC_PAGE_PATHS = ['/login'];
+const PUBLIC_PAGE_PATHS = ['/login', '/forgot-password', '/reset-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -1,19 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/admin/users/[id]/route": "app/api/admin/users/[id]/route.js",
-  "/api/admin/users/route": "app/api/admin/users/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js",
-  "/api/trades/[id]/route": "app/api/trades/[id]/route.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/dashboard/stats/route": "app/api/dashboard/stats/route.js",
-  "/api/trades/route": "app/api/trades/route.js",
-  "/page": "app/page.js",
-  "/(dashboard)/stats/page": "app/(dashboard)/stats/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(dashboard)/admin/users/page": "app/(dashboard)/admin/users/page.js",
   "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
-  "/(dashboard)/trades/[id]/edit/page": "app/(dashboard)/trades/[id]/edit/page.js",
-  "/(dashboard)/trades/page": "app/(dashboard)/trades/page.js",
   "/(dashboard)/trades/new/page": "app/(dashboard)/trades/new/page.js"
 }

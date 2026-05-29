@@ -9,7 +9,17 @@ interface Props {
   tradeId?: number;
 }
 
-const TIME_OPTIONS = ['Morning', 'Mid Day', 'Afternoon'];
+function todayStr() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function nowTimeStr() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function TradeForm({ initial, tradeId }: Props) {
   const router = useRouter();
@@ -18,10 +28,14 @@ export default function TradeForm({ initial, tradeId }: Props) {
   const [preview, setPreview] = useState<{ pl: number; r: number | null } | null>(null);
 
   const [form, setForm] = useState({
-    trade_date:     initial?.trade_date     ?? new Date().toISOString().split('T')[0],
+    trade_date: initial?.trade_date
+      ? String(initial.trade_date).split('T')[0]
+      : todayStr(),
+    trade_time: initial?.time_of_trade && /^\d{2}:\d{2}$/.test(initial.time_of_trade)
+      ? initial.time_of_trade
+      : nowTimeStr(),
     symbol:         initial?.symbol         ?? '',
     trade_type:     initial?.trade_type     ?? 'Long' as 'Long' | 'Short',
-    time_of_trade:  initial?.time_of_trade  ?? '',
     strategy:       initial?.strategy       ?? '',
     entry_price:    initial?.entry_price    ? String(initial.entry_price) : '',
     stop_loss:      initial?.stop_loss      ? String(initial.stop_loss)   : '',
@@ -60,7 +74,7 @@ export default function TradeForm({ initial, tradeId }: Props) {
       trade_date:     form.trade_date,
       symbol:         form.symbol.toUpperCase(),
       trade_type:     form.trade_type,
-      time_of_trade:  form.time_of_trade || null,
+      time_of_trade:  form.trade_time || null,
       strategy:       form.strategy      || null,
       entry_price:    parseFloat(form.entry_price),
       stop_loss:      form.stop_loss ? parseFloat(form.stop_loss) : null,
@@ -95,36 +109,56 @@ export default function TradeForm({ initial, tradeId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Row 1: date, symbol, type, time */}
-      <div className="grid grid-cols-4 gap-4">
-        <div>
+
+      {/* Row 1: datum, tijdstip, symbool, type */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="min-w-0 overflow-hidden">
           <label className={labelCls}>Datum *</label>
-          <input type="date" required value={form.trade_date}
-            onChange={e => set('trade_date', e.target.value)} className={inputCls} />
+          <input
+            type="date"
+            required
+            value={form.trade_date}
+            onChange={e => set('trade_date', e.target.value)}
+            className={inputCls}
+            style={{ minWidth: 0, width: '100%' }}
+          />
         </div>
-        <div>
+        <div className="min-w-0 overflow-hidden">
+          <label className={labelCls}>Tijdstip</label>
+          <input
+            type="time"
+            value={form.trade_time}
+            onChange={e => set('trade_time', e.target.value)}
+            className={inputCls}
+            style={{ minWidth: 0, width: '100%' }}
+          />
+        </div>
+        <div className="min-w-0">
           <label className={labelCls}>Symbool *</label>
-          <input type="text" required placeholder="US500" value={form.symbol}
-            onChange={e => set('symbol', e.target.value.toUpperCase())} className={inputCls} />
+          <input
+            type="text"
+            required
+            placeholder="US500"
+            value={form.symbol}
+            onChange={e => set('symbol', e.target.value.toUpperCase())}
+            className={inputCls}
+          />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className={labelCls}>Type *</label>
-          <select value={form.trade_type} onChange={e => set('trade_type', e.target.value)} className={inputCls}>
+          <select
+            value={form.trade_type}
+            onChange={e => set('trade_type', e.target.value)}
+            className={inputCls}
+          >
             <option value="Long">Long</option>
             <option value="Short">Short</option>
-          </select>
-        </div>
-        <div>
-          <label className={labelCls}>Tijdstip</label>
-          <select value={form.time_of_trade} onChange={e => set('time_of_trade', e.target.value)} className={inputCls}>
-            <option value="">—</option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
       </div>
 
       {/* Row 2: entry, stop loss, shares, exit */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div>
           <label className={labelCls}>Entry prijs *</label>
           <input type="number" step="any" required placeholder="6896.30" value={form.entry_price}
@@ -147,11 +181,11 @@ export default function TradeForm({ initial, tradeId }: Props) {
         </div>
       </div>
 
-      {/* Preview */}
+      {/* P&L preview */}
       {preview && (
         <div className="bg-tj-active border border-tj-border rounded-xl px-4 py-3 flex gap-8">
           <div>
-            <p className="text-[10px] font-semibold text-tj-muted2 uppercase tracking-wide">Berekende P&L</p>
+            <p className="text-[10px] font-semibold text-tj-muted2 uppercase tracking-wide">Berekende P&amp;L</p>
             <p className={`text-lg font-bold font-mono mt-0.5 ${preview.pl >= 0 ? 'text-tj-teal' : 'text-tj-red'}`}>
               {preview.pl >= 0 ? '+' : '−'}€{Math.abs(preview.pl).toFixed(2)}
             </p>
@@ -168,7 +202,7 @@ export default function TradeForm({ initial, tradeId }: Props) {
       )}
 
       {/* Row 3: strategy, commission */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelCls}>Strategie</label>
           <input type="text" placeholder="Bijv. Breakout" value={form.strategy}
@@ -181,14 +215,16 @@ export default function TradeForm({ initial, tradeId }: Props) {
         </div>
       </div>
 
-      {/* Notes, screenshot, issue */}
+      {/* Notes */}
       <div>
         <label className={labelCls}>Notities</label>
         <textarea rows={3} placeholder="Trade journaal aantekeningen..."
           value={form.notes} onChange={e => set('notes', e.target.value)}
           className={inputCls + ' resize-none'} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+
+      {/* Screenshot, issue */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelCls}>Screenshot URL</label>
           <input type="url" placeholder="https://prnt.sc/..." value={form.screenshot_url}

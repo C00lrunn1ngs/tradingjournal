@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await db(
-    'SELECT id, username, email, password_hash, role FROM users WHERE username = @u',
+    'SELECT id, username, email, password_hash, role FROM users WHERE username = @u OR email = @u',
     { u: username }
   );
 
