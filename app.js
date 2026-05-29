@@ -2,15 +2,16 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 
-const port = parseInt(process.env.PORT || '3000', 10);
+// iisnode passes PORT as a named pipe path (not a number) — don't parseInt
+const port = process.env.PORT || 3000;
 const app = next({ dev: false });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
-  createServer((req, res) => {
+  createServer(async (req, res) => {
     const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+    await handle(req, res, parsedUrl);
   }).listen(port, () => {
-    console.log(`> Ready on port ${port}`);
+    console.log(`> Ready on ${port}`);
   });
 });
