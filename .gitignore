@@ -28,8 +28,6 @@ ftp-upload.log
 ftp-upload.ps1
 next-build.zip
 
-# Lock file — server genereert platformspecifieke versie zelf
-package-lock.json
 
 # Tooling internals
 .superpowers/
