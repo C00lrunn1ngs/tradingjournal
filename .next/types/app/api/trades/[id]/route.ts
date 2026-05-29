@@ -1,4 +1,4 @@
-// File: C:\Projecten\TradingJournal\src\app\api\trades\[id]\route.ts
+// File: c:\Projecten\TradingJournal\src\app\api\trades\[id]\route.ts
 import * as entry from '../../../../../../src/app/api/trades/[id]/route.js'
 import type { NextRequest } from 'next/server.js'
 

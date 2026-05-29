@@ -7,8 +7,10 @@ node_modules/
 .env.production.local
 .env.development.local
 
-# Next.js build cache (large, regenerated automatically)
+# Next.js build cache and development artifacts
 .next/cache/
+.next/static/development/
+.next/static/webpack/
 
 # TypeScript build info
 tsconfig.tsbuildinfo

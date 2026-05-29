@@ -99,7 +99,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "C:\\Projecten\\TradingJournal",
+    "outputFileTracingRoot": "c:\\Projecten\\TradingJournal",
     "experimental": {
       "useSkewCookie": false,
       "cacheLife": {
@@ -289,10 +289,10 @@
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.ts",
     "turbopack": {
-      "root": "C:\\Projecten\\TradingJournal"
+      "root": "c:\\Projecten\\TradingJournal"
     }
   },
-  "appDir": "C:\\Projecten\\TradingJournal",
+  "appDir": "c:\\Projecten\\TradingJournal",
   "relativeAppDir": "",
   "files": [
     ".next\\routes-manifest.json",
